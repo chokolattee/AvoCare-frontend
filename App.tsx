@@ -4,15 +4,14 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import AppNavigator from './Navigation/AppNavigator';
 import axios from 'axios';
 import { useFonts } from 'expo-font';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 
 axios.defaults.headers.common['ngrok-skip-browser-warning'] = 'true';
 axios.defaults.headers.common['Content-Type'] = 'application/json';
 
 export default function App() {
   const [fontsLoaded] = useFonts({
-    ...Ionicons.font,
-    ...MaterialCommunityIcons.font,
+    Ionicons: require('@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/Ionicons.ttf'),
+    MaterialCommunityIcons: require('@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/MaterialCommunityIcons.ttf'),
   });
 
   if (!fontsLoaded) return null;
