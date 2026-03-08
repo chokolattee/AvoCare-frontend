@@ -3,6 +3,10 @@
 # dependencies
 node_modules/
 
+# Allow exported font assets inside dist (needed for web deploy)
+!dist/assets/node_modules/
+!dist/assets/node_modules/**
+
 # Expo
 .expo/
 # dist/
