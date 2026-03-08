@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "523971166543",
+    "project_id": "avocare-6e194",
+    "storage_bucket": "avocare-6e194.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:523971166543:android:301cf6a0a6f8cb6a7e853a",
+        "android_client_info": {
+          "package_name": "com.avocare.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "523971166543-iju2d434vfis9g6d25mm6fire7f4cjl1.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.avocare.app",
+            "certificate_hash": "6beb6efd634e4a79ddb27cff3271949a7c3df901"
+          }
+        },
+        {
+          "client_id": "523971166543-qaese53rfqaim4sg20qsfokcf6k04638.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDL38-IaY6uv85WQn6yQnhoElm2gj_GNVA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "523971166543-qaese53rfqaim4sg20qsfokcf6k04638.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

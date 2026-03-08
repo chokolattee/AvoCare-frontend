@@ -1,0 +1,62 @@
+{
+  "expo": {
+    "name": "Avocare",
+    "slug": "avocare",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/avocado-icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/avocado-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "android": {
+      "googleServicesFile": "./google-services.json",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/avocado-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "edgeToEdgeEnabled": true,
+      "predictiveBackGestureEnabled": false,
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "data": [
+            {
+              "scheme": "avocare"
+            },
+            {
+              "scheme": "http",
+              "host": "localhost",
+              "port": "8081"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
+        }
+      ],
+      "package": "com.avocare.app"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.avocare.app"
+    },
+    "scheme": "avocare",
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-font",
+      "@react-native-google-signin/google-signin"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "45d438d2-e38a-4243-b351-b59709a8b76a"
+      }
+    }
+  }
+}
