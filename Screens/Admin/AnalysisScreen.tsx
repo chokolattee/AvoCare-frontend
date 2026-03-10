@@ -73,13 +73,13 @@ const STATUS_COLORS: Record<HistoryRow['status'], { bg: string; text: string }> 
 };
 
 const CHART_OPTIONS = [
-  { key: 'keyInsights',       label: 'Key Insights',       icon: '📊', desc: 'Summary metrics & KPIs' },
-  { key: 'userGrowth',        label: 'User Growth',        icon: '📈', desc: 'Last 6 months trend' },
-  { key: 'featureEngagement', label: 'Feature Engagement', icon: '🔍', desc: 'Scans, Posts, Market, Chatbot' },
-  { key: 'marketSales',       label: 'Market Sales',       icon: '💰', desc: 'Revenue & order stats' },
-  { key: 'detailedAnalytics',  label: 'Detailed Analytics',  icon: '📋', desc: 'All scan & post counts' },
-  { key: 'colorDistribution',  label: 'Colour Distribution',  icon: '🎨', desc: 'Avocado skin colour breakdown' },
-  { key: 'activityHistory',    label: 'Activity History',    icon: '📄', desc: 'All scan records with images (PDF: first 20)' },
+  { key: 'keyInsights',       label: 'Key Insights', desc: 'Summary metrics & KPIs' },
+  { key: 'userGrowth',        label: 'User Growth',        desc: 'Last 6 months trend' },
+  { key: 'featureEngagement', label: 'Feature Engagement', desc: 'Scans, Posts, Market, Chatbot' },
+  { key: 'marketSales',       label: 'Market Sales',       desc: 'Revenue & order stats' },
+  { key: 'detailedAnalytics',  label: 'Detailed Analytics',  desc: 'All scan & post counts' },
+  { key: 'colorDistribution',  label: 'Colour Distribution',  desc: 'Avocado skin colour breakdown' },
+  { key: 'activityHistory',    label: 'Activity History',    desc: 'All scan records with images (PDF: first 20)' },
 ];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -1241,7 +1241,7 @@ const AnalysisScreen = () => {
                     disabled={imageUnsupported}>
                     <Ionicons name={isChecked ? 'checkbox' : 'square-outline'} size={22} color={isChecked ? '#4A7C2F' : '#A0B89A'} />
                     <View style={{ flex: 1 }}>
-                      <Text style={styles.checkboxLabel}>{chart.icon}  {chart.label}</Text>
+                      <Text style={styles.checkboxLabel}>{chart.label}</Text>
                       <Text style={styles.checkboxDesc}>
                         {imageUnsupported ? 'PDF only — tables cannot be saved as images' : chart.desc}
                       </Text>

@@ -67,13 +67,13 @@ const DISEASE_COLOR_MAP: Record<string, string> = {
 const PIE_COLORS = ['#ef4444', '#4A7C2F', '#f59e0b', '#9C27B0'];
 const PROGRESS_COLORS = ['#4A7C2F', '#f59e0b', '#ef4444', '#6366f1'];
 const CHART_OPTIONS = [
-  { key: 'statsOverview', label: 'Stats Overview', icon: '📊', desc: 'Users, scans, posts & leaf stats' },
-  { key: 'userActivity', label: 'User Activity', icon: '📈', desc: 'Last 7 days activity trend' },
-  { key: 'scanDistribution', label: 'Scan Distribution', icon: '🔍', desc: 'Leaves, ripeness, disease counts' },
-  { key: 'diseaseDetection', label: 'Disease Detection', icon: '🦠', desc: 'Disease type breakdown' },
-  { key: 'leafHealth', label: 'Leaf Health', icon: '🌿', desc: 'Leaf condition distribution' },
-  { key: 'colorDistribution', label: 'Colour Distribution', icon: '🎨', desc: 'Avocado skin colour breakdown' },
-  { key: 'marketSales', label: 'Market Sales', icon: '💰', desc: 'Revenue & order stats' },
+  { key: 'statsOverview', label: 'Stats Overview', desc: 'Users, scans, posts & leaf stats' },
+  { key: 'userActivity', label: 'User Activity', desc: 'Last 7 days activity trend' },
+  { key: 'scanDistribution', label: 'Scan Distribution', desc: 'Leaves, ripeness, disease counts' },
+  { key: 'diseaseDetection', label: 'Disease Detection', desc: 'Disease type breakdown' },
+  { key: 'leafHealth', label: 'Leaf Health', desc: 'Leaf condition distribution' },
+  { key: 'colorDistribution', label: 'Colour Distribution', desc: 'Avocado skin colour breakdown' },
+  { key: 'marketSales', label: 'Market Sales', desc: 'Revenue & order stats' },
 ];
 
 const baseChartConfig = {
@@ -1091,7 +1091,7 @@ const DashboardScreen: React.FC<Props> = ({ navigation }) => {
                     <Ionicons name={isActive ? 'checkbox' : 'square-outline'} size={22}
                       color={isActive ? '#4A7C2F' : '#A0B89A'} />
                     <View style={{ flex: 1 }}>
-                      <Text style={styles.checkboxLabel}>{chart.icon}  {chart.label}</Text>
+                      <Text style={styles.checkboxLabel}>{chart.label}</Text>
                       <Text style={styles.checkboxDesc}>{chart.desc}</Text>
                     </View>
                   </TouchableOpacity>
