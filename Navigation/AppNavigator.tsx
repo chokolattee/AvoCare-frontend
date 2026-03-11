@@ -78,7 +78,7 @@ export type RootStackParamList = {
   RegisterScreen: undefined;
   VerifyEmail: { token: string };
   Chatbot: undefined;
-  About: undefined;       // ← AvocadoInfoScreen is registered here
+  About: undefined;       
   Profile: { initialTab?: 'personal' | 'address' | 'security' } | undefined;
   Admin: undefined;
   History: undefined;

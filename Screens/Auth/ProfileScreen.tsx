@@ -397,25 +397,19 @@ const ProfileScreen: React.FC = () => {
             <View style={styles.menuIconWrap}>
               <Ionicons name="time-outline" size={20} color="#3d6b22" />
             </View>
-            <Text style={styles.menuText}>Order History</Text>
+            <Text style={styles.menuText}>Scan History</Text>
             <Ionicons name="chevron-forward" size={18} color="#b8d4a4" />
           </TouchableOpacity>
 
-          <Text style={[styles.menuSectionLabel, { marginTop: 20 }]}>PREFERENCES</Text>
-
-          <TouchableOpacity style={styles.menuItem} activeOpacity={0.7}>
+          <TouchableOpacity
+            style={[styles.menuItem, styles.lastItem]}
+            onPress={() => navigation.navigate('ListOrders' as never)}
+            activeOpacity={0.7}
+          >
             <View style={styles.menuIconWrap}>
-              <Ionicons name="settings-outline" size={20} color="#3d6b22" />
+              <Ionicons name="receipt-outline" size={20} color="#3d6b22" />
             </View>
-            <Text style={styles.menuText}>Settings</Text>
-            <Ionicons name="chevron-forward" size={18} color="#b8d4a4" />
-          </TouchableOpacity>
-
-          <TouchableOpacity style={[styles.menuItem, styles.lastItem]} activeOpacity={0.7}>
-            <View style={styles.menuIconWrap}>
-              <Ionicons name="help-circle-outline" size={20} color="#3d6b22" />
-            </View>
-            <Text style={styles.menuText}>Help & Support</Text>
+            <Text style={styles.menuText}>My Orders</Text>
             <Ionicons name="chevron-forward" size={18} color="#b8d4a4" />
           </TouchableOpacity>
 

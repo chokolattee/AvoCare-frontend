@@ -265,19 +265,13 @@ const Cart: React.FC<CartScreenProps> = ({ navigation }) => {
           <Ionicons name="cart-outline" size={80} color="#c8e0b0" />
           <Text style={s.emptyTitle}>Your cart is empty</Text>
           <Text style={s.emptySub}>Add some products to get started!</Text>
-          <TouchableOpacity style={s.shopBtn} onPress={() => navigation.navigate('MainTabs')} activeOpacity={0.85}>
+          <TouchableOpacity style={s.shopBtn} onPress={() => navigation.navigate('MainTabs', { screen: 'Market' } as any)} activeOpacity={0.85}>
             <Ionicons name="storefront-outline" size={18} color="#fff" />
             <Text style={s.shopBtnText}>Browse Marketplace</Text>
           </TouchableOpacity>
         </View>
       ) : (
         <>
-          {/*
-           * THE FIX: explicit pixel height = window - header - summary.
-           * This forces the FlatList to have a hard bounded height,
-           * so content that overflows MUST scroll internally.
-           * Works on web AND mobile regardless of parent overflow settings.
-           */}
           <FlatList
             data={cartItems}
             keyExtractor={(item) => item.product}
@@ -309,7 +303,7 @@ const Cart: React.FC<CartScreenProps> = ({ navigation }) => {
                 <Ionicons name="lock-closed-outline" size={18} color="#fff" />
                 <Text style={s.checkoutText}>Proceed to Checkout</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={s.continueBtn} onPress={() => navigation.navigate('MainTabs')} activeOpacity={0.8}>
+              <TouchableOpacity style={s.continueBtn} onPress={() => navigation.navigate('MainTabs', { screen: 'Market' } as any)} activeOpacity={0.8}>
                 <Text style={s.continueText}>← Continue Shopping</Text>
               </TouchableOpacity>
             </View>

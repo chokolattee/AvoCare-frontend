@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   Alert,
   Image,
+  Modal,
   RefreshControl,
   useWindowDimensions,
   Platform,
@@ -41,7 +42,6 @@ export interface Analysis {
   notes: string;
   count: number;
   image_size: { width: number; height: number };
-  all_probabilities: Record<string, number>;
   original_image_url?: string;
   annotated_image_url?: string;
   ripeness?: {
@@ -89,13 +89,19 @@ const TYPE_META: Record<string, { label: string; icon: any; color: string; barCo
   fruit_disease: { label: 'Disease Detection', icon: 'warning', color: '#C94040', barColor: '#C94040' },
 };
 
+const LEAF_RECOMMENDATIONS: Record<string, string> = {
+  healthy              : 'Maintain regular watering and fertilization schedule.',
+  Healthy              : 'Maintain regular watering and fertilization schedule.',
+  anthracnose          : 'Remove affected leaves, improve air circulation, and apply fungicide.',
+  Anthracnose          : 'Remove affected leaves, improve air circulation, and apply fungicide.',
+  'nutrient deficiency': 'Apply balanced fertilizer. Consider soil testing.',
+  'Nutrient Deficient' : 'Apply balanced fertilizer. Consider soil testing.',
+  'Pest Infested'      : 'Inspect closely and apply appropriate pesticide or natural control.',
+  'pest infested'      : 'Inspect closely and apply appropriate pesticide or natural control.',
+};
+
 const COLOR_HEX: Record<string, string> = { brown: '#795548', green: '#4CAF50', purple: '#9C27B0' };
 const COLOR_EMOJI: Record<string, string> = { brown: '🟤', green: '🟢', purple: '🟣' };
-const COLOR_DESCRIPTION: Record<string, string> = {
-  brown : 'Dark brown skin — likely very ripe or overripe',
-  green : 'Green skin — early-stage or underripe avocado',
-  purple: 'Deep purple/black skin — typically at peak ripeness',
-};
 
 // ─── Helpers ─────────────────────────────────────────────────
 
@@ -140,11 +146,10 @@ interface CardProps {
   analysis: Analysis;
   imageWidth: number;
   imageHeight: number;
-  onDelete: (id: string) => void;
 }
 
-const AnalysisCard: React.FC<CardProps> = ({ analysis, imageWidth, imageHeight, onDelete }) => {
-  const [showProbs, setShowProbs] = useState(false);
+const AnalysisCard: React.FC<CardProps> = ({ analysis, imageWidth, imageHeight }) => {
+  const [lightboxUri, setLightboxUri] = useState<string | null>(null);
   const meta = TYPE_META[analysis.analysis_type] ?? TYPE_META.ripeness;
 
   let primaryResult = '';
@@ -166,11 +171,28 @@ const AnalysisCard: React.FC<CardProps> = ({ analysis, imageWidth, imageHeight, 
   }
 
   const hasImages = !!(analysis.original_image_url || analysis.annotated_image_url);
-  const probEntries = Object.entries(analysis.all_probabilities)
-    .sort(([, a], [, b]) => (b as number) - (a as number));
 
   return (
     <View style={styles.analysisCard}>
+      {/* Lightbox modal */}
+      <Modal visible={!!lightboxUri} transparent animationType="fade" onRequestClose={() => setLightboxUri(null)}>
+        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.92)', justifyContent: 'center', alignItems: 'center' }}>
+          <TouchableOpacity
+            style={{ position: 'absolute', top: 48, right: 20, zIndex: 10, padding: 8, backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: 20 }}
+            onPress={() => setLightboxUri(null)}
+          >
+            <Ionicons name="close" size={26} color="#fff" />
+          </TouchableOpacity>
+          {lightboxUri && (
+            <Image
+              source={{ uri: lightboxUri }}
+              style={{ width: '100%', height: '80%' }}
+              resizeMode="contain"
+            />
+          )}
+        </View>
+      </Modal>
+
       {/* Coloured accent bar at top */}
       <View style={[styles.cardAccentBar, { backgroundColor: meta.barColor }]} />
 
@@ -184,9 +206,6 @@ const AnalysisCard: React.FC<CardProps> = ({ analysis, imageWidth, imageHeight, 
             <Text style={styles.analysisTypeLabel}>{meta.label}</Text>
             <Text style={styles.timeAgo}>{timeAgo(analysis.created_at)}</Text>
           </View>
-          <TouchableOpacity style={styles.deleteButton} onPress={() => onDelete(analysis.id)}>
-            <Ionicons name="trash-outline" size={17} color="#C94040" />
-          </TouchableOpacity>
         </View>
 
         {/* ── Image thumbnails ───────────────────────────────── */}
@@ -200,7 +219,11 @@ const AnalysisCard: React.FC<CardProps> = ({ analysis, imageWidth, imageHeight, 
             decelerationRate="fast"
           >
             {analysis.original_image_url && (
-              <View style={[styles.imageThumbWrap, { width: imageWidth }]}>
+              <TouchableOpacity
+                activeOpacity={0.85}
+                onPress={() => setLightboxUri(analysis.original_image_url!)}
+                style={[styles.imageThumbWrap, { width: imageWidth }]}
+              >
                 <Image
                   source={{ uri: analysis.original_image_url }}
                   style={[styles.imageThumb, { width: imageWidth, height: imageHeight }]}
@@ -209,10 +232,14 @@ const AnalysisCard: React.FC<CardProps> = ({ analysis, imageWidth, imageHeight, 
                 <View style={styles.imagePill}>
                   <Text style={styles.imagePillText}>Original</Text>
                 </View>
-              </View>
+              </TouchableOpacity>
             )}
             {analysis.annotated_image_url && (
-              <View style={[styles.imageThumbWrap, { width: imageWidth }]}>
+              <TouchableOpacity
+                activeOpacity={0.85}
+                onPress={() => setLightboxUri(analysis.annotated_image_url!)}
+                style={[styles.imageThumbWrap, { width: imageWidth }]}
+              >
                 <Image
                   source={{ uri: analysis.annotated_image_url }}
                   style={[styles.imageThumb, { width: imageWidth, height: imageHeight }]}
@@ -221,50 +248,90 @@ const AnalysisCard: React.FC<CardProps> = ({ analysis, imageWidth, imageHeight, 
                 <View style={styles.imagePill}>
                   <Text style={styles.imagePillText}>Analysis</Text>
                 </View>
-              </View>
+              </TouchableOpacity>
             )}
           </ScrollView>
         )}
 
         {/* ── Stat chips ─────────────────────────────────────── */}
-        <View style={styles.statsRow}>
-          {/* Result */}
-          <View style={[styles.statChip, { flex: 2 }]}>
-            <View>
-              <Text style={styles.statLabel}>Result</Text>
-              <Text style={[styles.statValue, { color: meta.color }]} numberOfLines={1}>
-                {primaryResult}
-              </Text>
-            </View>
+        {analysis.analysis_type === 'leaf' && analysis.leaf?.detections && analysis.leaf.detections.length > 1 ? (
+          // Multi-leaf: one row per detection
+          <View style={{ marginBottom: 6 }}>
+            <Text style={[styles.statLabel, { marginBottom: 6 }]}>LEAVES DETECTED ({analysis.leaf.detections.length})</Text>
+            {analysis.leaf.detections.map((det: any, idx: number) => (
+              <View key={det.id ?? idx} style={[styles.statsRow, { marginBottom: 6, backgroundColor: `${meta.color}08`, borderRadius: 8, padding: 8 }]}>
+                <View style={[styles.statChip, { flex: 2 }]}>
+                  <View>
+                    <Text style={styles.statLabel}>Leaf #{det.id ?? idx + 1}</Text>
+                    <Text style={[styles.statValue, { color: meta.color }]} numberOfLines={1}>{det.class}</Text>
+                  </View>
+                </View>
+                <View style={styles.statChip}>
+                  <View style={[styles.confDot, { backgroundColor: confColor(det.confidence) }]} />
+                  <View>
+                    <Text style={styles.statLabel}>Confidence</Text>
+                    <Text style={[styles.statValue, { color: confColor(det.confidence) }]}>{(det.confidence * 100).toFixed(1)}%</Text>
+                  </View>
+                </View>
+              </View>
+            ))}
           </View>
-          {/* Confidence */}
-          <View style={styles.statChip}>
-            <View style={[styles.confDot, { backgroundColor: confColor(confidence) }]} />
-            <View>
-              <Text style={styles.statLabel}>Confidence</Text>
-              <Text style={[styles.statValue, { color: confColor(confidence) }]}>
-                {(confidence * 100).toFixed(1)}%
-              </Text>
-            </View>
-          </View>
-          {/* Detections (only if > 1) */}
-          {analysis.count > 1 && (
-            <View style={styles.statChip}>
+        ) : (
+          <View style={styles.statsRow}>
+            {/* Result */}
+            <View style={[styles.statChip, { flex: 2 }]}>
               <View>
-                <Text style={styles.statLabel}>Detected</Text>
-                <Text style={styles.statValue}>{analysis.count}</Text>
+                <Text style={styles.statLabel}>Result</Text>
+                <Text style={[styles.statValue, { color: meta.color }]} numberOfLines={1}>
+                  {primaryResult}
+                </Text>
               </View>
             </View>
-          )}
-        </View>
+            {/* Confidence */}
+            <View style={styles.statChip}>
+              <View style={[styles.confDot, { backgroundColor: confColor(confidence) }]} />
+              <View>
+                <Text style={styles.statLabel}>Confidence</Text>
+                <Text style={[styles.statValue, { color: confColor(confidence) }]}>
+                  {(confidence * 100).toFixed(1)}%
+                </Text>
+              </View>
+            </View>
+            {/* Detections (only if > 1) */}
+            {analysis.count > 1 && (
+              <View style={styles.statChip}>
+                <View>
+                  <Text style={styles.statLabel}>Detected</Text>
+                  <Text style={styles.statValue}>{analysis.count}</Text>
+                </View>
+              </View>
+            )}
+          </View>
+        )}
 
         {/* ── Recommendation ─────────────────────────────────── */}
-        {!!recommendation && (
+        {analysis.analysis_type === 'leaf' && analysis.leaf?.detections && analysis.leaf.detections.length > 1 ? (
+          <View style={styles.recBox}>
+            <Ionicons name="bulb-outline" size={16} color="#5d873e" style={styles.recIcon} />
+            <View style={{ flex: 1 }}>
+              {analysis.leaf.detections.map((det: any, idx: number) => (
+                <View key={det.id ?? idx} style={{ marginBottom: idx < analysis.leaf!.detections.length - 1 ? 8 : 0 }}>
+                  <Text style={[styles.recText, { fontWeight: '700', color: meta.color, marginBottom: 2 }]}>
+                    Leaf #{det.id ?? idx + 1} · {det.class}
+                  </Text>
+                  <Text style={styles.recText}>
+                    {LEAF_RECOMMENDATIONS[det.class] || det.recommendation || analysis.leaf!.recommendation || 'Monitor the leaf closely.'}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        ) : !!recommendation ? (
           <View style={styles.recBox}>
             <Ionicons name="bulb-outline" size={16} color="#5d873e" style={styles.recIcon} />
             <Text style={styles.recText}>{recommendation}</Text>
           </View>
-        )}
+        ) : null}
 
         {/* ── Ripeness detail pills ──────────────────────────── */}
         {analysis.analysis_type === 'ripeness' && analysis.ripeness && (
@@ -292,34 +359,12 @@ const AnalysisCard: React.FC<CardProps> = ({ analysis, imageWidth, imageHeight, 
           </View>
         )}
 
-        {/* ── Colour detail card (shown when colour tab is active or card has colour) ── */}
+        {/* ── Colour detail card — color name only ──────────── */}
         {analysis.analysis_type === 'ripeness' && analysis.ripeness?.color && (
           <View style={[styles.recBox, { borderLeftColor: COLOR_HEX[analysis.ripeness.color] ?? '#999', marginTop: 6 }]}>
-            <Text style={{ fontSize: 12, color: COLOR_HEX[analysis.ripeness.color] ?? '#333', fontWeight: '700', marginBottom: 2 }}>
+            <Text style={{ fontSize: 12, color: COLOR_HEX[analysis.ripeness.color] ?? '#333', fontWeight: '700' }}>
               {COLOR_EMOJI[analysis.ripeness.color] ?? '🎨'} Skin Colour — {analysis.ripeness.color.toUpperCase()}
             </Text>
-            <Text style={styles.recText}>{COLOR_DESCRIPTION[analysis.ripeness.color] ?? ''}</Text>
-            {analysis.ripeness.color_metrics && Object.keys(analysis.ripeness.color_metrics).length > 0 && (() => {
-              const { confidence, ...probs } = analysis.ripeness.color_metrics as { confidence?: number; [k: string]: number | undefined };
-              return (
-                <>
-                  {confidence != null && (
-                    <Text style={[styles.recText, { marginTop: 2 }]}>Confidence: {(confidence * 100).toFixed(1)}%</Text>
-                  )}
-                  <View style={{ marginTop: 4 }}>
-                    {Object.entries(probs).map(([cls, val]) => (
-                      <View key={cls} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 3 }}>
-                        <Text style={{ fontSize: 11, color: '#333', width: 54 }}>{cls}</Text>
-                        <View style={{ flex: 1, height: 6, backgroundColor: '#eee', borderRadius: 3, marginHorizontal: 6 }}>
-                          <View style={{ height: 6, width: `${((val as number) ?? 0) * 100}%`, backgroundColor: COLOR_HEX[cls] ?? '#999', borderRadius: 3 }} />
-                        </View>
-                        <Text style={{ fontSize: 10, color: '#666', width: 34 }}>{(((val as number) ?? 0) * 100).toFixed(0)}%</Text>
-                      </View>
-                    ))}
-                  </View>
-                </>
-              );
-            })()}
           </View>
         )}
 
@@ -331,39 +376,7 @@ const AnalysisCard: React.FC<CardProps> = ({ analysis, imageWidth, imageHeight, 
           </View>
         )}
 
-        {/* ── Probabilities (collapsible) ────────────────────── */}
-        {probEntries.length > 0 && (
-          <View style={styles.probsSection}>
-            <TouchableOpacity
-              style={styles.probsToggle}
-              onPress={() => setShowProbs(v => !v)}
-              activeOpacity={0.7}
-            >
-              <Ionicons
-                name={showProbs ? 'chevron-up' : 'chevron-down'}
-                size={13}
-                color="#8A9382"
-              />
-              <Text style={styles.probsTitle}>
-                {showProbs ? 'Hide' : 'Show'} Probabilities
-              </Text>
-            </TouchableOpacity>
-            {showProbs && probEntries.map(([key, val]) => (
-              <View key={key} style={styles.probRow}>
-                <Text style={styles.probLabel} numberOfLines={1}>{key}</Text>
-                <View style={styles.probTrack}>
-                  <View
-                    style={[
-                      styles.probFill,
-                      { width: `${(val as number) * 100}%`, backgroundColor: meta.color },
-                    ]}
-                  />
-                </View>
-                <Text style={styles.probPct}>{((val as number) * 100).toFixed(1)}%</Text>
-              </View>
-            ))}
-          </View>
-        )}
+
       </View>
     </View>
   );
@@ -432,26 +445,6 @@ const HistoryScreen: React.FC<Props> = ({ navigation }) => {
   }, [navigation, fetchAnalyses]);
 
   const onRefresh = useCallback(() => { setRefreshing(true); fetchAnalyses(); }, [fetchAnalyses]);
-
-  const handleDelete = (id: string) => {
-    Alert.alert('Delete Analysis', 'This cannot be undone.', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Delete', style: 'destructive',
-        onPress: async () => {
-          try {
-            const token = await AsyncStorage.getItem('jwt') || await AsyncStorage.getItem('token');
-            const res = await fetch(`${HISTORY_URL}/${id}`, {
-              method: 'DELETE',
-              headers: { Authorization: `Bearer ${token}`, 'ngrok-skip-browser-warning': 'true' },
-            });
-            if (!res.ok) throw new Error();
-            fetchAnalyses();
-          } catch { Alert.alert('Error', 'Failed to delete.'); }
-        },
-      },
-    ]);
-  };
 
   const filtered = analyses.filter(a => {
     // 1. Category tab
@@ -609,7 +602,6 @@ const HistoryScreen: React.FC<Props> = ({ navigation }) => {
                 analysis={a}
                 imageWidth={imgWidth}
                 imageHeight={imgHeight}
-                onDelete={handleDelete}
               />
             ))
           )}

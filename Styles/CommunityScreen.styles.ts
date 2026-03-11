@@ -1,5 +1,7 @@
 import { StyleSheet, Platform } from 'react-native';
 
+export const MAX_CONTENT_WIDTH = 1200;
+
 export const styles = StyleSheet.create({
 
   // ─── Layout ────────────────────────────────────────────────────────────────
@@ -31,6 +33,169 @@ export const styles = StyleSheet.create({
     fontWeight: '800',
     color: '#2e4420',
     letterSpacing: -0.3,
+  },
+
+  // ─── Market-style header layout ────────────────────────────────────────────
+  headerBar: {
+    backgroundColor: '#ddeece',
+    borderBottomWidth: 1,
+    borderBottomColor: '#c8e0b0',
+    paddingBottom: 16,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#2a4d10',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 10,
+      },
+      android: { elevation: 4 },
+    }),
+  },
+  headerInner: {
+    paddingHorizontal: 16,
+    paddingTop: 14,
+    gap: 12,
+  },
+  headerTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  headerTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  headerDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#7aad4e',
+    marginTop: 2,
+  },
+  headerCount: {
+    fontSize: 15,
+    color: '#3d6b22',
+    fontWeight: '700',
+  },
+  controlsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  searchWrap: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    backgroundColor: '#e2f0d4',
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: '#d4e9b8',
+  },
+  searchWrapFocused: {
+    borderColor: '#7aad4e',
+    backgroundColor: '#f4faed',
+  },
+  categoryTrigger: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    backgroundColor: '#f0f7e8',
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: '#d4e9b8',
+    minWidth: 90,
+    maxWidth: 140,
+  },
+  categoryTriggerOpen: {
+    backgroundColor: '#3d6b22',
+    borderColor: '#3d6b22',
+  },
+  categoryTriggerText: {
+    fontSize: 13,
+    color: '#5a8c35',
+    fontWeight: '600',
+    flex: 1,
+  },
+  categoryTriggerTextOpen: {
+    color: '#fff',
+  },
+  dropdownPanel: {
+    backgroundColor: '#f4faed',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0edcd',
+    zIndex: 10,
+  },
+  dropdownPanelInner: {
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+    paddingTop: 6,
+  },
+  dropdownPanelHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingBottom: 8,
+  },
+  dropdownPanelHeaderText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#7aad4e',
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+  },
+  dropdownCloseBtn: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: '#e2f0d4',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dropdownScrollView: {
+    maxHeight: 220,
+  },
+  dropdownItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 9,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+  },
+  dropdownItemActive: {
+    backgroundColor: '#daefc8',
+  },
+  dropdownDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#d4e9b8',
+  },
+  dropdownDotActive: {
+    backgroundColor: '#3d6b22',
+  },
+  dropdownItemText: {
+    flex: 1,
+    fontSize: 14,
+    color: '#5a7040',
+  },
+  dropdownItemTextActive: {
+    color: '#2e4420',
+    fontWeight: '600',
+  },
+  dropdownCheckCircle: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: '#3d6b22',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 
   // ─── Tabs ──────────────────────────────────────────────────────────────────

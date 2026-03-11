@@ -77,13 +77,13 @@ const AboutScreen: React.FC<Props> = ({ navigation }) => {
   const featureCardWidth = isMobile ? '100%' : `${Math.floor(100 / featureCols) - 2}%`;
 
   return (
-    <View style={[styles.container, { backgroundColor: '#cce8a8' }]}>
+      <View style={[styles.container, { backgroundColor: '#e8f2de' }]}>
       <ScrollView
         style={[
           Platform.OS === 'web' ? { height: '100vh' as any } : {},
-          { backgroundColor: '#cce8a8' },
+          { backgroundColor: '#e8f2de' },
         ]}
-        contentContainerStyle={[styles.scrollContent, { backgroundColor: '#cce8a8' }]}
+        contentContainerStyle={[styles.scrollContent, { backgroundColor: '#e8f2de' }]}
         showsVerticalScrollIndicator={false}
         bounces={true}
         nestedScrollEnabled={true}

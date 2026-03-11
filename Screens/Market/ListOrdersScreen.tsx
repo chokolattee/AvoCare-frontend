@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
+  Modal,
   RefreshControl,
   Platform,
   useWindowDimensions,
@@ -116,6 +117,109 @@ function resolveOrderIdFromReview(order: Review['order']): string {
   if (typeof order === 'string') return order;
   return (order as any)._id ?? (order as any).id ?? '';
 }
+
+// ─── Cancel Reason Modal ─────────────────────────────────────────────────────
+
+const CANCEL_REASONS = [
+  'Changed my mind',
+  'Ordered by mistake',
+  'Found a better price elsewhere',
+  'Delivery time is too long',
+  'Duplicate order',
+  'Other',
+];
+
+interface CancelModalProps {
+  visible: boolean;
+  orderId: string;
+  onConfirm: (reason: string) => void;
+  onClose: () => void;
+  isLoading: boolean;
+}
+
+function CancelReasonModal({ visible, orderId, onConfirm, onClose, isLoading }: CancelModalProps) {
+  const [selected, setSelected] = useState(CANCEL_REASONS[0]);
+
+  // Reset selection when modal opens
+  React.useEffect(() => { if (visible) setSelected(CANCEL_REASONS[0]); }, [visible]);
+
+  return (
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+      <View style={cs.backdrop}>
+        <View style={cs.card}>
+          <View style={cs.header}>
+            <View style={cs.headerIconWrap}>
+              <Ionicons name="close-circle-outline" size={24} color={C.red} />
+            </View>
+            <Text style={cs.title}>Cancel Order</Text>
+            <Text style={cs.subtitle}>Order {shortId(orderId)}</Text>
+          </View>
+
+          <Text style={cs.label}>Please select a reason:</Text>
+
+          <ScrollView style={cs.reasonsList} showsVerticalScrollIndicator={false}>
+            {CANCEL_REASONS.map((reason) => (
+              <TouchableOpacity
+                key={reason}
+                style={[cs.reasonRow, selected === reason && cs.reasonRowActive]}
+                onPress={() => setSelected(reason)}
+                activeOpacity={0.75}
+              >
+                <View style={[cs.radio, selected === reason && cs.radioActive]}>
+                  {selected === reason && <View style={cs.radioDot} />}
+                </View>
+                <Text style={[cs.reasonText, selected === reason && cs.reasonTextActive]}>{reason}</Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+
+          <View style={cs.actions}>
+            <TouchableOpacity style={cs.keepBtn} onPress={onClose} activeOpacity={0.8} disabled={isLoading}>
+              <Text style={cs.keepBtnText}>Keep Order</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[cs.confirmBtn, isLoading && { opacity: 0.6 }]}
+              onPress={() => onConfirm(selected)}
+              activeOpacity={0.85}
+              disabled={isLoading}
+            >
+              {isLoading
+                ? <ActivityIndicator size="small" color="#fff" />
+                : <>
+                    <Ionicons name="close-circle-outline" size={16} color="#fff" />
+                    <Text style={cs.confirmBtnText}>Cancel Order</Text>
+                  </>
+              }
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
+const cs = StyleSheet.create({
+  backdrop:        { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', padding: 24 },
+  card:            { backgroundColor: '#fff', borderRadius: 20, width: '100%', maxWidth: 400, overflow: 'hidden', elevation: 16, shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.2, shadowRadius: 16 },
+  header:          { backgroundColor: C.redPale, paddingVertical: 20, paddingHorizontal: 20, alignItems: 'center', borderBottomWidth: 1, borderBottomColor: C.redBorder },
+  headerIconWrap:  { width: 48, height: 48, borderRadius: 24, backgroundColor: '#fde0e0', alignItems: 'center', justifyContent: 'center', marginBottom: 8 },
+  title:           { fontSize: 18, fontWeight: '800', color: C.red, marginBottom: 2 },
+  subtitle:        { fontSize: 13, color: '#a05050', fontWeight: '600' },
+  label:           { fontSize: 13, fontWeight: '700', color: C.inkSoft, paddingHorizontal: 20, paddingTop: 16, paddingBottom: 8, textTransform: 'uppercase', letterSpacing: 0.6 },
+  reasonsList:     { maxHeight: 280, paddingHorizontal: 20 },
+  reasonRow:       { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12, paddingHorizontal: 14, borderRadius: 12, marginBottom: 6, backgroundColor: C.fog, borderWidth: 1.5, borderColor: 'transparent' },
+  reasonRowActive: { backgroundColor: C.redPale, borderColor: C.redBorder },
+  radio:           { width: 20, height: 20, borderRadius: 10, borderWidth: 2, borderColor: '#ccc', alignItems: 'center', justifyContent: 'center' },
+  radioActive:     { borderColor: C.red },
+  radioDot:        { width: 10, height: 10, borderRadius: 5, backgroundColor: C.red },
+  reasonText:      { fontSize: 14, color: C.inkFaint, fontWeight: '500', flex: 1 },
+  reasonTextActive:{ color: C.red, fontWeight: '700' },
+  actions:         { flexDirection: 'row', gap: 10, padding: 20, paddingTop: 16 },
+  keepBtn:         { flex: 1, paddingVertical: 12, borderRadius: 12, backgroundColor: C.fog, borderWidth: 1.5, borderColor: C.border, alignItems: 'center' },
+  keepBtnText:     { fontSize: 14, fontWeight: '700', color: C.inkFaint },
+  confirmBtn:      { flex: 1, flexDirection: 'row', gap: 6, paddingVertical: 12, borderRadius: 12, backgroundColor: C.red, alignItems: 'center', justifyContent: 'center' },
+  confirmBtnText:  { fontSize: 14, fontWeight: '700', color: '#fff' },
+});
 
 // ─── StatusPill ───────────────────────────────────────────────────────────────
 
@@ -241,6 +345,9 @@ const ListOrdersScreen: React.FC<Props> = ({ navigation }) => {
   const [error, setError]               = useState<string | null>(null);
   const [activeTab, setActiveTab]       = useState<OrderStatus>('All');
   const [cancellingId, setCancellingId] = useState<string | null>(null);
+  const [cancelModal, setCancelModal]   = useState<{ visible: boolean; order: Order | null }>({
+    visible: false, order: null,
+  });
 
   const reviewByOrderId = React.useMemo(() => {
     const map = new Map<string, Review>();
@@ -281,33 +388,28 @@ const ListOrdersScreen: React.FC<Props> = ({ navigation }) => {
   const onRefresh = useCallback(() => { setRefreshing(true); fetchData(true); }, [fetchData]);
 
   const handleCancel = useCallback((order: Order) => {
-    Alert.alert(
-      'Cancel Order',
-      `Cancel order ${shortId(order.id)}?\n\nThis action cannot be undone.`,
-      [
-        { text: 'Keep Order', style: 'cancel' },
-        {
-          text: 'Cancel Order', style: 'destructive',
-          onPress: async () => {
-            try {
-              setCancellingId(order.id);
-              const res = await cancelOrderApi(order.id);
-              if (res.success) {
-                setOrders((prev) => prev.map((o) => o.id === order.id ? { ...o, orderStatus: 'Cancelled' } : o));
-                Alert.alert('Cancelled', 'Your order has been cancelled successfully.');
-              } else {
-                Alert.alert('Error', res.message ?? 'Failed to cancel order.');
-              }
-            } catch (err: any) {
-              Alert.alert('Error', err?.message ?? 'Failed to cancel order. Please try again.');
-            } finally {
-              setCancellingId(null);
-            }
-          },
-        },
-      ],
-    );
+    setCancelModal({ visible: true, order });
   }, []);
+
+  const confirmCancel = useCallback(async (reason: string) => {
+    const order = cancelModal.order;
+    if (!order) return;
+    try {
+      setCancellingId(order.id);
+      const res = await cancelOrderApi(order.id, reason);
+      if (res.success) {
+        setCancelModal({ visible: false, order: null });
+        setOrders((prev) => prev.map((o) => o.id === order.id ? { ...o, orderStatus: 'Cancelled' } : o));
+        Alert.alert('Order Cancelled', 'Your order has been cancelled and a confirmation email has been sent.');
+      } else {
+        Alert.alert('Error', res.message ?? 'Failed to cancel order.');
+      }
+    } catch (err: any) {
+      Alert.alert('Error', err?.message ?? 'Failed to cancel order. Please try again.');
+    } finally {
+      setCancellingId(null);
+    }
+  }, [cancelModal.order]);
 
   const filtered = activeTab === 'All' ? orders : orders.filter((o) => o.orderStatus === activeTab);
   const countFor = (tab: OrderStatus) => tab === 'All' ? orders.length : orders.filter((o) => o.orderStatus === tab).length;
@@ -317,6 +419,15 @@ const ListOrdersScreen: React.FC<Props> = ({ navigation }) => {
 
   return (
     <SafeAreaView style={s.safeArea}>
+
+      {/* ── Cancel Reason Modal ── */}
+      <CancelReasonModal
+        visible={cancelModal.visible}
+        orderId={cancelModal.order?.id ?? ''}
+        onConfirm={confirmCancel}
+        onClose={() => setCancelModal({ visible: false, order: null })}
+        isLoading={cancellingId !== null}
+      />
 
       {/* ── Header ── */}
       <View style={s.headerBar}>

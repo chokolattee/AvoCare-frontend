@@ -10,6 +10,7 @@ import {
   Image,
   Modal,
   Dimensions,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -19,7 +20,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ImagePicker from 'expo-image-picker';
 import * as Yup from 'yup';
 import { API_BASE_URL as BASE_URL } from '../../config/api';
-import { styles } from '../../Styles/CommunityScreen.styles';
+import { styles, MAX_CONTENT_WIDTH } from '../../Styles/CommunityScreen.styles';
 import { pushNotification } from '../../Components/Notifications';
 
 type CommunityStackParamList = {
@@ -212,6 +213,10 @@ const CommunityScreen: React.FC<Props> = ({ navigation }) => {
   // ARCHIVE CONFIRMATION MODAL STATE
   const [showArchiveModal, setShowArchiveModal] = useState(false);
   const [postToArchive, setPostToArchive] = useState<{ id: string; title: string } | null>(null);
+
+  // HEADER SEARCH/FILTER STATE
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [searchFocused, setSearchFocused] = useState(false);
 
   useEffect(() => {
     const getUserId = async () => {
@@ -589,6 +594,14 @@ const CommunityScreen: React.FC<Props> = ({ navigation }) => {
 
   const filteredPosts = getFilteredPosts();
 
+  const isWeb = Platform.OS === 'web';
+  const centeredCol = isWeb
+    ? { width: '100%' as const, maxWidth: MAX_CONTENT_WIDTH, alignSelf: 'center' as const }
+    : { width: '100%' as const };
+
+  const selectedCatName = categories.find(c => c.key === selectedCategory)?.label ?? 'All';
+  const selectCategory = (key: string) => { setSelectedCategory(key); setDropdownOpen(false); };
+
   // const handleChatbotPress = () => {
   //   navigation.getParent()?.navigate('Chatbot' as never);
   // };
@@ -708,8 +721,70 @@ const CommunityScreen: React.FC<Props> = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Community Forum</Text>
+      {/* ══ HEADER ══ */}
+      <View style={styles.headerBar}>
+        <View style={centeredCol}>
+          <View style={styles.headerInner}>
+          <View style={styles.headerTopRow}>
+            <View style={styles.headerTitleRow}>
+              <Text style={styles.headerTitle}>Community Forum</Text>
+              <View style={styles.headerDot} />
+            </View>
+            <Text style={styles.headerCount}>
+              {loading ? '…' : `${filteredPosts.length} post${filteredPosts.length !== 1 ? 's' : ''}`}
+            </Text>
+          </View>
+
+          <View style={styles.controlsRow}>
+            <View style={[styles.searchWrap, searchFocused && styles.searchWrapFocused]}>
+              <Ionicons name="search-outline" size={17} color="#7aad4e" />
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Search posts…"
+                placeholderTextColor="#a8c48a"
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                onFocus={() => setSearchFocused(true)}
+                onBlur={() => setSearchFocused(false)}
+              />
+              {searchQuery.length > 0 && (
+                <TouchableOpacity
+                  onPress={() => setSearchQuery('')}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                >
+                  <Ionicons name="close-circle" size={16} color="#a8c48a" />
+                </TouchableOpacity>
+              )}
+            </View>
+
+            <TouchableOpacity
+              style={[styles.categoryTrigger, dropdownOpen && styles.categoryTriggerOpen]}
+              onPress={() => setDropdownOpen((v) => !v)}
+              activeOpacity={0.8}
+            >
+              <Ionicons
+                name="filter-outline"
+                size={14}
+                color={dropdownOpen ? '#fff' : '#5a8c35'}
+              />
+              <Text
+                style={[
+                  styles.categoryTriggerText,
+                  dropdownOpen && styles.categoryTriggerTextOpen,
+                ]}
+                numberOfLines={1}
+              >
+                {selectedCatName}
+              </Text>
+              <Ionicons
+                name={dropdownOpen ? 'chevron-up' : 'chevron-down'}
+                size={14}
+                color={dropdownOpen ? '#fff' : '#5a8c35'}
+              />
+            </TouchableOpacity>
+          </View>
+        </View>
+        </View>
       </View>
 
       <View style={styles.tabsContainer}>
@@ -764,48 +839,50 @@ const CommunityScreen: React.FC<Props> = ({ navigation }) => {
         )}
       </View>
 
+      {/* ══ DROPDOWN ══ */}
+      {dropdownOpen && (
+        <View style={styles.dropdownPanel}>
+          <View style={styles.dropdownPanelInner}>
+            <View style={styles.dropdownPanelHeader}>
+              <Text style={styles.dropdownPanelHeaderText}>Filter by Category</Text>
+              <TouchableOpacity
+                style={styles.dropdownCloseBtn}
+                onPress={() => setDropdownOpen(false)}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <Ionicons name="close" size={14} color="#4a6635" />
+              </TouchableOpacity>
+            </View>
+            <ScrollView style={styles.dropdownScrollView} showsVerticalScrollIndicator bounces={false}>
+              {categories.map((cat) => (
+                <TouchableOpacity
+                  key={cat.key}
+                  style={[styles.dropdownItem, selectedCategory === cat.key && styles.dropdownItemActive]}
+                  onPress={() => selectCategory(cat.key)}
+                  activeOpacity={0.7}
+                >
+                  <View style={[styles.dropdownDot, selectedCategory === cat.key && styles.dropdownDotActive]} />
+                  <Text style={[styles.dropdownItemText, selectedCategory === cat.key && styles.dropdownItemTextActive]}>
+                    {cat.label}
+                  </Text>
+                  {selectedCategory === cat.key && (
+                    <View style={styles.dropdownCheckCircle}>
+                      <Ionicons name="checkmark" size={12} color="#fff" />
+                    </View>
+                  )}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </View>
+      )}
+
       <ScrollView 
         style={styles.mainContent}
         showsVerticalScrollIndicator={false}
+        onScrollBeginDrag={() => setDropdownOpen(false)}
       >
         <View style={styles.centerColumn}>
-          <View style={styles.searchBar}>
-            <Ionicons name="search-outline" size={18} color="#5d873e" style={styles.searchIcon} />
-            <TextInput
-              style={styles.searchInput}
-              placeholder="Search posts..."
-              placeholderTextColor="#999"
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-            />
-          </View>
-
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoriesRow}>
-            {categories.map((cat) => (
-              <TouchableOpacity
-                key={cat.key}
-                style={[
-                  styles.categoryButton,
-                  selectedCategory === cat.key && styles.categoryButtonActive,
-                ]}
-                onPress={() => setSelectedCategory(cat.key)}
-              >
-                <Ionicons
-                  name={cat.icon as any}
-                  size={14}
-                  color={selectedCategory === cat.key ? '#fff' : '#5d873e'}
-                />
-                <Text
-                  style={[
-                    styles.categoryText,
-                    selectedCategory === cat.key && styles.categoryTextActive,
-                  ]}
-                >
-                  {cat.label}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
 
           {(activeTab === 'all' || activeTab === 'my') && (
             <TouchableOpacity

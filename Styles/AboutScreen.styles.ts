@@ -15,7 +15,7 @@ const C = {
   mist:        '#dff0cc',   // noticeably green — was #f7faf3 (near white)
   fog:         '#cce8b0',   // deeper — was #eef3e8
   white:       '#ffffff',
-  bg:          '#cce8a8',   // clearly green — was #e8f2de (barely tinted)
+  bg:          '#e8f2de',   // matches Community and Market screens
   headerBg:    '#bedd96',   // richer — was #ddeece
   border:      '#b8d898',
   borderSoft:  '#cce0a8',

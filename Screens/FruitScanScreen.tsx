@@ -73,18 +73,6 @@ const COLOR_EMOJI: Record<string, string> = {
   purple:        '🟤',
 };
 
-const COLOR_DESCRIPTION: Record<string, string> = {
-  black:
-    'Very dark/black skin — fully ripe or overripe. Best consumed immediately or used in recipes.',
-  green:
-    'Green skin — early-stage or underripe avocado. Allow a few more days at room temperature to ripen.',
-  'purple brown':
-    'Purple-brown skin — approaching or at peak ripeness. Ideal time to eat for best flavour and texture.',
-  // fallback aliases
-  brown:  'Very dark/black skin — fully ripe or overripe. Best consumed immediately or used in recipes.',
-  purple: 'Purple-brown skin — approaching or at peak ripeness. Ideal time to eat for best flavour and texture.',
-};
-
 // Normalise API color string → display label
 const normalizeColor = (raw: string): string => {
   const map: Record<string, string> = {
@@ -349,6 +337,15 @@ const FruitScanScreen: React.FC = ({ navigation }: any) => {
       const rawColor = colorRes.success && colorRes.color ? colorRes.color : 'unknown';
       const normalizedColor = rawColor !== 'unknown' ? normalizeColor(rawColor) : 'unknown';
 
+      // If ripeness is ripe/overripe and disease is anthracnose, treat as healthy
+      const ripenessLower = primary.ripeness?.toLowerCase();
+      const rawDiseaseClass = diseaseRes.prediction.class;
+      const resolvedDiseaseClass =
+        (ripenessLower === 'ripe' || ripenessLower === 'overripe') &&
+        rawDiseaseClass?.toLowerCase() === 'anthracnose'
+          ? 'healthy'
+          : rawDiseaseClass;
+
       const analysisResult: FruitAnalysisResult = {
         isAvocado: true,
         avocadoClass: avocadoCheck.class, avocadoConfidence: avocadoCheck.confidence,
@@ -357,8 +354,10 @@ const FruitScanScreen: React.FC = ({ navigation }: any) => {
         days_to_ripe: primary.days_to_ripe, recommendation: primary.recommendation,
         all_probabilities: ripenessRes.all_probabilities ?? {},
         bbox: primary.bbox, image_size: ripenessRes.image_size || diseaseRes.image_size,
-        fruitDiseaseClass: diseaseRes.prediction.class,
-        fruitDiseaseDetections: diseaseRes.detections || [],
+        fruitDiseaseClass: resolvedDiseaseClass,
+        fruitDiseaseDetections: resolvedDiseaseClass !== rawDiseaseClass
+          ? (diseaseRes.detections || []).map(d => ({ ...d, class: resolvedDiseaseClass }))
+          : (diseaseRes.detections || []),
         fruitDiseaseCount: diseaseRes.count || 1,
         colorClass: normalizedColor,
         colorConfidence: colorRes.success ? (colorRes.confidence ?? 0) : 0,
@@ -705,7 +704,6 @@ const FruitScanScreen: React.FC = ({ navigation }: any) => {
                   </Text>
                 </View>
                 <Text style={{ fontSize: 12, color: '#6b8c52', marginBottom: 8, lineHeight: 17 }}>
-                  {COLOR_DESCRIPTION[result.colorClass]}
                 </Text>
                 <View style={styles.miniProbRow}>
                   <Text style={styles.miniProbLabel}>{result.colorClass}</Text>

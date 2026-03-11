@@ -325,12 +325,6 @@ const Header: React.FC<HeaderProps> = ({ onMenuPress, showNavLinks = true }) => 
                       <Ionicons name="chevron-forward" size={16} color="#999" />
                     </TouchableOpacity>
 
-                    <TouchableOpacity style={styles.dropdownItem} onPress={() => setDropdownOpen(false)} activeOpacity={0.7}>
-                      <View style={styles.dropdownIconContainer}><Ionicons name="settings-outline" size={20} color="#5d873e" /></View>
-                      <Text style={styles.dropdownText}>Settings</Text>
-                      <Ionicons name="chevron-forward" size={16} color="#999" />
-                    </TouchableOpacity>
-
                     <View style={styles.dropdownDivider} />
 
                     <TouchableOpacity style={[styles.dropdownItem, styles.logoutItem]} onPress={handleLogout} activeOpacity={0.7}>
@@ -500,18 +494,6 @@ const Header: React.FC<HeaderProps> = ({ onMenuPress, showNavLinks = true }) => 
                           <Ionicons name="time-outline" size={20} color="#5d873e" />
                         </View>
                         <Text style={styles.dropdownText}>History</Text>
-                        <Ionicons name="chevron-forward" size={16} color="#999" />
-                      </TouchableOpacity>
-
-                      <TouchableOpacity
-                        style={styles.dropdownItem}
-                        onPress={() => setDropdownOpen(false)}
-                        activeOpacity={0.7}
-                      >
-                        <View style={styles.dropdownIconContainer}>
-                          <Ionicons name="settings-outline" size={20} color="#5d873e" />
-                        </View>
-                        <Text style={styles.dropdownText}>Settings</Text>
                         <Ionicons name="chevron-forward" size={16} color="#999" />
                       </TouchableOpacity>
 

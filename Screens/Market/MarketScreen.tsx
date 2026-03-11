@@ -11,6 +11,7 @@ import {
   Platform,
   Alert,
   StyleSheet,
+  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -97,6 +98,7 @@ const MarketScreen: React.FC<Props> = ({ navigation }) => {
   const [addingToCart, setAddingToCart] = useState<string | null>(null);
   const [quantities, setQuantities] = useState<Record<string, number>>({});
   const [cartToast, setCartToast] = useState<{ qty: number; name: string } | null>(null);
+  const [showLoginModal, setShowLoginModal] = useState(false);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const isWeb = Platform.OS === 'web';
@@ -179,10 +181,7 @@ const MarketScreen: React.FC<Props> = ({ navigation }) => {
     async (product: Product) => {
       const loggedIn = await isLoggedIn();
       if (!loggedIn) {
-        Alert.alert('Login Required', 'Please login to add items to your cart.', [
-          { text: 'Cancel', style: 'cancel' },
-          { text: 'Login', onPress: () => (navigation as any).navigate('LoginScreen') },
-        ]);
+        setShowLoginModal(true);
         return;
       }
 
@@ -466,6 +465,43 @@ const MarketScreen: React.FC<Props> = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* ══ LOGIN REQUIRED POPUP ══ */}
+      <Modal
+        visible={showLoginModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowLoginModal(false)}
+      >
+        <View style={loginModalStyles.overlay}>
+          <View style={loginModalStyles.card}>
+            <View style={loginModalStyles.iconCircle}>
+              <Ionicons name="lock-closed-outline" size={32} color="#3d6b22" />
+            </View>
+            <Text style={loginModalStyles.title}>Login Required</Text>
+            <Text style={loginModalStyles.body}>
+              Please log in to add items to your cart and start shopping.
+            </Text>
+            <TouchableOpacity
+              style={loginModalStyles.loginBtn}
+              activeOpacity={0.85}
+              onPress={() => {
+                setShowLoginModal(false);
+                (navigation as any).navigate('LoginScreen');
+              }}
+            >
+              <Text style={loginModalStyles.loginBtnText}>Log In</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={loginModalStyles.cancelBtn}
+              activeOpacity={0.7}
+              onPress={() => setShowLoginModal(false)}
+            >
+              <Text style={loginModalStyles.cancelBtnText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
       {/* ══ CART TOAST (web only) ══ */}
       {isWeb && cartToast && cartToast.qty > 0 && (
         <View style={toastStyles.overlay} pointerEvents="box-none">
@@ -522,7 +558,11 @@ const MarketScreen: React.FC<Props> = ({ navigation }) => {
                   </Text>
 
                   <TouchableOpacity
-                    onPress={() => navigation.navigate('Cart')}
+                    onPress={async () => {
+                      const loggedIn = await isLoggedIn();
+                      if (!loggedIn) { setShowLoginModal(true); return; }
+                      navigation.navigate('Cart');
+                    }}
                     style={cardCartStyles.cartIcon}
                     activeOpacity={0.8}
                   >
@@ -786,6 +826,68 @@ const cardCartStyles = StyleSheet.create({
     paddingHorizontal: 3,
   },
   badgeText: { color: '#fff', fontSize: 10, fontWeight: '700' },
+});
+
+// ─── Login modal styles ───────────────────────────────────────────────────────
+
+const loginModalStyles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    paddingVertical: 32,
+    paddingHorizontal: 28,
+    width: 320,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.18,
+    shadowRadius: 20,
+    elevation: 12,
+  },
+  iconCircle: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: '#eaf4e0',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1e3a0f',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  body: {
+    fontSize: 14,
+    color: '#5a7a45',
+    textAlign: 'center',
+    lineHeight: 21,
+    marginBottom: 24,
+  },
+  loginBtn: {
+    width: '100%',
+    backgroundColor: '#3d6b22',
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  loginBtnText: { color: '#fff', fontSize: 15, fontWeight: '700' },
+  cancelBtn: {
+    width: '100%',
+    paddingVertical: 10,
+    alignItems: 'center',
+  },
+  cancelBtnText: { color: '#8aaa72', fontSize: 14, fontWeight: '500' },
 });
 
 export default MarketScreen;

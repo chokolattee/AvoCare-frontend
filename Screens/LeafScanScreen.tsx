@@ -563,10 +563,21 @@ const LeafScanScreen: React.FC = ({ navigation }: any) => {
                   <Text style={styles.detectionBannerText}>{result.detections.length} Leaves Detected</Text>
                 </View>
               )}
-              <View style={[styles.statusIndicator, { backgroundColor: LEAF_COLORS[result.leafClass] || '#5a8a30' }]}>
-                <Text style={styles.statusTitle}>{result.leafClass.toUpperCase()}</Text>
-                <Text style={styles.statusDescription}>{LEAF_DESCRIPTIONS[result.leafClass]}</Text>
-              </View>
+              {result.detections.length < 2 ? (
+                <View style={[styles.statusIndicator, { backgroundColor: LEAF_COLORS[result.leafClass] || '#5a8a30' }]}>
+                  <Text style={styles.statusTitle}>{result.leafClass.toUpperCase()}</Text>
+                  <Text style={styles.statusDescription}>{LEAF_DESCRIPTIONS[result.leafClass]}</Text>
+                </View>
+              ) : (
+                <View style={{ gap: 8 }}>
+                  {result.detections.map((det, idx) => (
+                    <View key={det.id || idx} style={[styles.statusIndicator, { backgroundColor: LEAF_COLORS[det.class] || '#5a8a30' }]}>
+                      <Text style={styles.statusTitle}>Leaf #{det.id} · {det.class.toUpperCase()}</Text>
+                      <Text style={styles.statusDescription}>{LEAF_DESCRIPTIONS[det.class] || 'No description available.'}</Text>
+                    </View>
+                  ))}
+                </View>
+              )}
             </>
           </FadeSlide>
 
@@ -612,11 +623,29 @@ const LeafScanScreen: React.FC = ({ navigation }: any) => {
             </FadeSlide>
           )}
 
-          {result.recommendation && (
+          {result.detections.length < 2 ? (
+            result.recommendation ? (
+              <FadeSlide visible delay={240}>
+                <View style={styles.recommendationCard}>
+                  <Text style={styles.recommendationTitle}>💡 Recommendation</Text>
+                  <Text style={styles.recommendationText}>{result.recommendation}</Text>
+                </View>
+              </FadeSlide>
+            ) : null
+          ) : (
             <FadeSlide visible delay={240}>
               <View style={styles.recommendationCard}>
-                <Text style={styles.recommendationTitle}>💡 Recommendation</Text>
-                <Text style={styles.recommendationText}>{result.recommendation}</Text>
+                <Text style={styles.recommendationTitle}>💡 Recommendations</Text>
+                {result.detections.map((det, idx) => (
+                  <View key={det.id || idx} style={{ marginTop: idx === 0 ? 0 : 10 }}>
+                    <Text style={[styles.recommendationTitle, { fontSize: 13, color: LEAF_COLORS[det.class] || '#3d6b22', marginBottom: 2 }]}>
+                      Leaf #{det.id} · {det.class.toUpperCase()}
+                    </Text>
+                    <Text style={styles.recommendationText}>
+                      {LEAF_RECOMMENDATIONS[det.class] || 'Monitor the leaf closely.'}
+                    </Text>
+                  </View>
+                ))}
               </View>
             </FadeSlide>
           )}

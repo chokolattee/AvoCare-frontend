@@ -152,9 +152,10 @@ export async function newOrderApi(payload: NewOrderPayload): Promise<SingleOrder
   });
 }
 
-export async function cancelOrderApi(id: string): Promise<SingleOrderResponse> {
-  return apiFetch<SingleOrderResponse>(`/api/orders/${id}/cancel`, {
+export async function cancelOrderApi(id: string, reason?: string): Promise<SingleOrderResponse> {
+  return apiFetch<SingleOrderResponse>(`/api/order/cancel/${id}`, {
     method: 'PUT',
+    body: JSON.stringify({ reason: reason ?? '' }),
   });
 }
 

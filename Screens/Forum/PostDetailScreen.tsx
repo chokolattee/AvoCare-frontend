@@ -47,6 +47,7 @@ interface CommentData {
   content: string;
   author_name: string;
   author_id?: string;
+  author_image?: string;
   reply_to?: string | null;
   likes?: number;
   liked_by?: string[];
@@ -866,7 +867,11 @@ const PostDetailScreen: React.FC<Props> = ({ navigation, route }) => {
                 <View key={index} style={styles.commentCard}>
                   <View style={styles.commentHeader}>
                     <View style={styles.commentAvatar}>
-                      <Ionicons name="person" size={16} color="#5d873e" />
+                      {comment.author_image ? (
+                        <Image source={{ uri: comment.author_image }} style={{ width: '100%', height: '100%', borderRadius: 99 }} />
+                      ) : (
+                        <Ionicons name="person" size={16} color="#5d873e" />
+                      )}
                     </View>
                     <Text style={styles.commentAuthor}>{comment.author_name}</Text>
                     <Text style={styles.commentTime}>{timeAgo(comment.created_at)}</Text>

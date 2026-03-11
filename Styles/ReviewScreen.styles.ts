@@ -3,7 +3,7 @@ import { StyleSheet } from 'react-native';
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5FAF0',
+    backgroundColor: '#cce8a8', // ← matched to orders screen C.bg
   },
 
   // ── Header ────────────────────────────────────────────────────────────────
